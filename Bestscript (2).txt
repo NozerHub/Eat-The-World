@@ -1,0 +1,250 @@
+local placeId = game.PlaceId
+local allowedPlaceId = 16480898254  -- ID do jogo "Eat the World"
+
+if placeId ~= allowedPlaceId then
+    return
+end
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Cria a janela principal
+local Window = Fluent:CreateWindow({
+    Title = "Eat The World",
+    SubTitle = "        Made by NozerHub Latest Version!",
+    TabWidth = 135,
+    Size = UDim2.fromOffset(500, 350),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Credits = Window:AddTab({ Title = "| Info", Icon = "rbxassetid://78024677300003" }),
+    Settings = Window:AddTab({ Title = "| UI Settings", Icon = "rbxassetid://139155441627309" }),
+    AutoFarm = Window:AddTab({ Title = "| Farm", Icon = "rbxassetid://90052849786331" }), 
+    Event = Window:AddTab({ Title = "| Event", Icon = "rbxassetid://70398721897691" }),
+    Misc = Window:AddTab({ Title = "| Misc", Icon = "rbxassetid://112272426770878" }),
+}
+
+local Options = Fluent.Options
+
+Fluent:Notify({
+    Title = "By Nozer Hub",
+    Content = "Thanks for using the script",
+    Duration = 5
+})
+
+local SupportSection = Tabs.Credits:AddSection("Support")
+Tabs.Credits:AddParagraph({
+    Title = "Supported Devices",
+    Content = "- Mobile\n- PC\n- Emulator\n- Console"
+})
+
+local UpdatesSection = Tabs.Credits:AddSection("Updates")
+Tabs.Credits:AddParagraph({
+    Title = "Updates",
+    Content = "- 20/11/2024"
+})
+
+local SupportSection = Tabs.Credits:AddSection("Support Executors")
+Tabs.Credits:AddParagraph({
+    Title = "Executors",
+    Content = "- Delta\n- Fluxus\n- Arceus X\n- Wave\n- Codex"
+})
+
+local CreditsSection = Tabs.Credits:AddSection("Credits")
+local linkParaCopiar = "https://www.youtube.com/@NozerHub"
+Tabs.Credits:AddButton({
+    Title = "Copy Link Channel",
+    Callback = function()
+        setclipboard(linkParaCopiar)
+    end
+})
+
+local AntiAFKEnabled = true
+local Toggle = Tabs.Misc:AddToggle("MyToggle", { Title = "Anti AFK", Default = true })
+Toggle:OnChanged(function()
+    AntiAFKEnabled = Options.MyToggle.Value
+end)
+Options.MyToggle:SetValue(true)
+
+-- Configurações de Interface e Salvar Configurações
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "The script has been loaded.",
+    Duration = 5
+})
+
+SaveManager:LoadAutoloadConfig()
+
+local ToggleGrab = Tabs.AutoFarm:AddToggle("GrabToggle", { Title = "Auto Grab", Default = false })
+ToggleGrab:OnChanged(function()
+    while Options.GrabToggle.Value do
+        local args = {
+            [1] = false,
+            [2] = false
+        }
+
+        game:GetService("Players").LocalPlayer.Character.Events.Grab:FireServer(unpack(args))
+        task.wait()
+    end
+end)
+
+Options.GrabToggle:SetValue(false)
+
+local ToggleEat = Tabs.AutoFarm:AddToggle("EatToggle", { Title = "Auto Eat", Default = false })
+ToggleEat:OnChanged(function()
+    while Options.EatToggle.Value do
+        game:GetService("Players").LocalPlayer.Character.Events.Eat:FireServer()
+        task.wait()
+    end
+end)
+
+Options.EatToggle:SetValue(false)
+
+local ToggleSell = Tabs.AutoFarm:AddToggle("SellToggle", { Title = "Auto Sell", Default = false })  -- Toggle começa desativado
+local InputSell = Tabs.AutoFarm:AddInput("SellInput", {
+    Title = "Time Sell",
+    Default = "5",  -- Valor padrão
+    Placeholder = "Enter time in seconds",
+    Numeric = true, -- Somente números são permitidos
+    Finished = true, -- Chama a função quando pressionar Enter
+    Callback = function(Value)
+        print("Input changed:", Value)
+    end
+})
+
+local function autoSell()
+    while Options.SellToggle.Value do  -- Enquanto o toggle estiver ativado
+        local waitTime = tonumber(Options.SellInput.Value) or 5  -- Se o valor do input não for válido, usa 5 segundos
+        task.wait(waitTime)  -- Espera o tempo configurado no input antes de disparar o evento
+        game:GetService("Players").LocalPlayer.Character.Events.Sell:FireServer()  -- Dispara o evento Sell
+    end
+end
+
+ToggleSell:OnChanged(function()
+    if Options.SellToggle.Value then  -- Quando o toggle for ativado
+        autoSell()  -- Inicia a execução automática após esperar o tempo configurado
+    end
+end)
+
+Options.SellToggle:SetValue(false)
+
+local ToggleSection = Tabs.Event:AddSection("Toggle")
+
+local ToggleUpgrade = Tabs.Event:AddToggle("UpgradeToggle", { Title = "Auto Upgrade Size", Default = false })
+ToggleUpgrade:OnChanged(function()
+    while Options.UpgradeToggle.Value do  -- Enquanto o toggle estiver ativado
+        local args = {
+            [1] = "MaxSize"
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+
+        task.wait(1) -- Intervalo entre cada execução (ajustável)
+    end
+end)
+
+Options.UpgradeToggle:SetValue(false) -- Toggle começa desativado
+
+local ToggleSpeedUpgrade = Tabs.Event:AddToggle("SpeedUpgradeToggle", { Title = "Auto Upgrade Speed", Default = false })
+
+ToggleSpeedUpgrade:OnChanged(function()
+    while Options.SpeedUpgradeToggle.Value do
+        local args = {
+            [1] = "Speed"
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+
+        task.wait(1) -- Intervalo entre as compras (ajuste conforme necessário)
+    end
+end)
+
+Options.SpeedUpgradeToggle:SetValue(false) -- Toggle começa desativado
+
+local ToggleMultiplierUpgrade = Tabs.Event:AddToggle("MultiplierUpgradeToggle", { Title = "Auto Upgrade Multiplier", Default = false })
+
+ToggleMultiplierUpgrade:OnChanged(function()
+    while Options.MultiplierUpgradeToggle.Value do
+        local args = {
+            [1] = "Multiplier"
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+
+        task.wait(1) -- Intervalo entre as compras (ajuste conforme necessário)
+    end
+end)
+
+Options.MultiplierUpgradeToggle:SetValue(false) -- Toggle começa desativado
+
+local ToggleEatSpeedUpgrade = Tabs.Event:AddToggle("EatSpeedUpgradeToggle", { Title = "Auto Upgrade Eat Speed", Default = false })
+
+ToggleEatSpeedUpgrade:OnChanged(function()
+    while Options.EatSpeedUpgradeToggle.Value do
+        local args = {
+            [1] = "EatSpeed"
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+
+        task.wait(1) -- Intervalo entre as compras (ajuste conforme necessário)
+    end
+end)
+
+Options.EatSpeedUpgradeToggle:SetValue(false) -- Toggle começa desativado
+
+local ButtonSection = Tabs.Event:AddSection("Button")
+
+Tabs.Event:AddButton({
+    Title = "Upgrade Max Size",
+    Callback = function()
+        local args = {
+            [1] = "MaxSize"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+    end
+})
+
+Tabs.Event:AddButton({
+    Title = "Upgrade Speed",
+    Callback = function()
+        local args = {
+            [1] = "Speed"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+    end
+})
+
+Tabs.Event:AddButton({
+    Title = "Upgrade Multiplier",
+    Callback = function()
+        local args = {
+            [1] = "Multiplier"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+    end
+})
+
+Tabs.Event:AddButton({
+    Title = "Upgrade Eat Speed",
+    Callback = function()
+        local args = {
+            [1] = "EatSpeed"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+    end
+})
