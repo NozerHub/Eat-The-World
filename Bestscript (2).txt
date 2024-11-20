@@ -114,33 +114,18 @@ end)
 
 Options.EatToggle:SetValue(false)
 
-local ToggleSell = Tabs.AutoFarm:AddToggle("SellToggle", { Title = "Auto Sell", Default = false })  -- Toggle começa desativado
-local InputSell = Tabs.AutoFarm:AddInput("SellInput", {
-    Title = "Time Sell",
-    Default = "5",  -- Valor padrão
-    Placeholder = "Enter time in seconds",
-    Numeric = true, -- Somente números são permitidos
-    Finished = true, -- Chama a função quando pressionar Enter
-    Callback = function(Value)
-        print("Input changed:", Value)
-    end
-})
+local Toggle = Tabs.AutoFarm:AddToggle("AutoSellToggle", { Title = "Auto Sell", Default = false })
 
-local function autoSell()
-    while Options.SellToggle.Value do  -- Enquanto o toggle estiver ativado
-        local waitTime = tonumber(Options.SellInput.Value) or 5  -- Se o valor do input não for válido, usa 5 segundos
-        task.wait(waitTime)  -- Espera o tempo configurado no input antes de disparar o evento
-        game:GetService("Players").LocalPlayer.Character.Events.Sell:FireServer()  -- Dispara o evento Sell
-    end
-end
-
-ToggleSell:OnChanged(function()
-    if Options.SellToggle.Value then  -- Quando o toggle for ativado
-        autoSell()  -- Inicia a execução automática após esperar o tempo configurado
+Toggle:OnChanged(function()
+    while Options.AutoSellToggle.Value do
+        if game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character then
+            game:GetService("Players").LocalPlayer.Character.Events.Sell:FireServer()
+        end
+        task.wait(0.1) -- Intervalo entre execuções (ajustável)
     end
 end)
 
-Options.SellToggle:SetValue(false)
+Options.AutoSellToggle:SetValue(false) -- Toggle começa desativado
 
 local ToggleSection = Tabs.Event:AddSection("Toggle")
 
@@ -248,3 +233,31 @@ Tabs.Event:AddButton({
         game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
     end
 })
+
+local TimeSellSection = Tabs.AutoFarm:AddSection("TimeSell")
+
+local Toggle = Tabs.AutoFarm:AddToggle("AutoSelltime10Toggle", { Title = "Auto Sell Time 10", Default = false })
+
+Toggle:OnChanged(function()
+    while Options.AutoSelltime10Toggle.Value do
+        if game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character then
+            game:GetService("Players").LocalPlayer.Character.Events.Sell:FireServer()
+        end
+        task.wait(10) -- Intervalo de 10 segundos entre execuções
+    end
+end)
+
+Options.AutoSelltime10Toggle:SetValue(false) -- Toggle começa desativado
+
+local Toggle = Tabs.AutoFarm:AddToggle("AutoSelltime20Toggle", { Title = "Auto Sell Time 20", Default = false })
+
+Toggle:OnChanged(function()
+    while Options.AutoSelltime20Toggle.Value do
+        if game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character then
+            game:GetService("Players").LocalPlayer.Character.Events.Sell:FireServer()
+        end
+        task.wait(20) -- Intervalo de 20 segundos entre execuções
+    end
+end)
+
+Options.AutoSelltime20Toggle:SetValue(false) -- Toggle começa desativado
